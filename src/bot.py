@@ -39,7 +39,8 @@ class Price_Watcher(commands.Bot):
                         # Formats the path to a module-like name like "cogs.calculator"
                         cog = os.path.splitext(new_path)[0] \
                             .replace("/", ".")[new_path.find(dir_basename):]
-                        try:
+                        try:    
+                            print(cog)
                             await self.load_extension(cog)
                         except commands.ExtensionNotFound:
                             log_warn(f"{cog} could not be found! Ignoring...")
