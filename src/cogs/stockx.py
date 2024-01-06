@@ -122,16 +122,16 @@ class stockx(commands.Cog):
 
             embedMsg.add_field(name= "Retail: ", value= productRetail, inline=False)
             embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Ask: ", value= productInfo[1], inline=True)
-            embedMsg.add_field(name= "# Ask: ", value= productInfo[2], inline=True)
+            embedMsg.add_field(name= "Lowest Ask: ", value= productInfo[1], inline=True)
+            embedMsg.add_field(name= "# of Ask: ", value= productInfo[2], inline=True)
 
             embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Sold: ", value= productInfo[3], inline=True)
+            embedMsg.add_field(name= "Last Sold: ", value= productInfo[3], inline=True)
             embedMsg.add_field(name= "# Sales 72hr: ", value= productInfo[4], inline=True)
 
             embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Bid: ", value= productInfo[5], inline=True)
-            embedMsg.add_field(name= "# Bid: ", value= productInfo[6], inline=True)
+            embedMsg.add_field(name= "Highest Bid: ", value= productInfo[5], inline=True)
+            embedMsg.add_field(name= "# of Bid: ", value= productInfo[6], inline=True)
 
             embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
 

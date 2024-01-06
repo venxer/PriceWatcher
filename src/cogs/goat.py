@@ -28,15 +28,15 @@ def getInfo(productID):
 
             try:
                 ask = str(entry["lowestPriceCents"]["amountUsdCents"])
-                askString = "$" + "{:.2f}".format(float(ask) / 100)
+                askString = "$" + str(int(ask) // 100)
             except KeyError:
                 askString = "N/A"
 
             try:
                 lastSold = str(entry["lastSoldPriceCents"]["amountUsdCents"])
-                lastSoldString = "$" + "{:.2f}".format(float(lastSold) / 100)
+                lastSoldString = "$" + str(int(lastSold) // 100)
             except KeyError:
-                lastSold = "N/A"
+                lastSoldString = "N/A"
 
             output_arr[0] += "**" + str(size) + "**\n" 
             output_arr[1] += askString + "\n"
