@@ -28,7 +28,7 @@ def getResourcePath(rel_path:str) -> str:
     return os.path.join(base_path, rel_path).replace("\\", "/")
 
 
-load_dotenv("assets.env")
+load_dotenv("../assets/.env")
 
 TOKEN = os.getenv("token")
 PREFIX = os.getenv("prefix")
