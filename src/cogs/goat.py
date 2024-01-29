@@ -65,6 +65,7 @@ class goat(commands.Cog):
             topResult = result["response"]["results"][0]
 
             productID = topResult["data"]["id"]
+            productSKU = topResult["data"]["sku"].replace(" ", "-")
             productTitle = topResult["value"]
             productURL = "https://www.goat.com/sneakers/" + topResult["data"]["slug"]
             productImage = topResult["data"]["image_url"]
@@ -78,6 +79,7 @@ class goat(commands.Cog):
                                      color = 0xB702FD)
             embedMsg.set_thumbnail(url=productImage)
             embedMsg.add_field(name= "Retail: ", value= productRetail, inline=False)
+            embedMsg.add_field(name= "SKU: ", value= productSKU, inline=False)
             embedMsg.add_field(name= "Product Info", value= header+productInfo+"```", inline=True)
 
             embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
