@@ -7,7 +7,7 @@ import re
 import cloudscraper
 
 def getInfo(productID):
-    output_arr = ["", "", ""]
+    output = ""
     scraper = cloudscraper.create_scraper(
         browser={
             'browser': 'firefox',
@@ -38,11 +38,9 @@ def getInfo(productID):
             except KeyError:
                 lastSoldString = "N/A"
 
-            output_arr[0] += "**" + str(size) + "**\n" 
-            output_arr[1] += askString + "\n"
-            output_arr[2] += lastSoldString +"\n"
+            output += "" + str(size).ljust(5) + "|" + askString.ljust(10) + "|" + lastSoldString.ljust(9) + "\n"
 
-    return output_arr
+    return output
 
 class goat(commands.Cog):
     def __init__(self, bot):
@@ -72,6 +70,7 @@ class goat(commands.Cog):
             productImage = topResult["data"]["image_url"]
             productRetail = "N/A" if topResult["data"]["retail_price_cents"] == 0 else "$" + "{:.2f}".format(float(topResult["data"]["retail_price_cents"]) / 100)
             
+            header = "```Size " + "|" + "Lowest Ask" + "|" + "Last Sold\n--------------------------\n"
             productInfo = getInfo(productID)
 
             embedMsg = discord.Embed(title = productTitle,
@@ -79,9 +78,7 @@ class goat(commands.Cog):
                                      color = 0xB702FD)
             embedMsg.set_thumbnail(url=productImage)
             embedMsg.add_field(name= "Retail: ", value= productRetail, inline=False)
-            embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Lowest Ask: ", value= productInfo[1], inline=True)
-            embedMsg.add_field(name= "Last Sold: ", value= productInfo[2], inline=True)
+            embedMsg.add_field(name= "Product Info", value= header+productInfo+"```", inline=True)
 
             embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
 
