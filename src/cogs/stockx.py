@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import json
-import re
 
 #for webscraping
 import cloudscraper
@@ -28,54 +27,50 @@ def fetchProductPage(arg):
     return productLink
 
 def fetchMarketData(data):
-    output_arr = ["", "", "", "", "", "", ""]
+    output = ""
+    # output_arr = ["", "", "", "", "", "", ""]
     variants = data["variants"]
-    #Size, [number of asks]lowestAsk, [past72hrSales]lastSold, [number of bids]highestBid,
+    # Size, [number of asks]lowestAsk, [past72hrSales]lastSold, [number of bids]highestBid,
     for variant in variants:
         try:
-            size = variant["traits"]["size"]
+            size = str(variant["traits"]["size"])
         except:
             size = "N/A"
-
         try:
-            numberAsk = variant["market"]["state"]["numberOfAsks"]
+            numberAsk = str(variant["market"]["state"]["numberOfAsks"])
         except:
             numberAsk = "N/A"
-
         try:
-            lowestAsk = variant["market"]["state"]["lowestAsk"]["amount"]
+            lowestAsk = "$" + str(variant["market"]["state"]["lowestAsk"]["amount"])
         except:
             lowestAsk = "N/A"
-
         try:
-            salesLast72Hours = variant["market"]["salesInformation"]["salesLast72Hours"]
+            salesLast72Hours = str(variant["market"]["salesInformation"]["salesLast72Hours"])
         except:
             salesLast72Hours = "N/A"
-
         try:
-            lastSold = variant["market"]["salesInformation"]["lastSale"]
+            lastSold = "$" + str(variant["market"]["salesInformation"]["lastSale"])
         except:
             lastSold = "N/A"
-
         try:
-            numberBids = variant["market"]["state"]["numberOfBids"]
+            numberBids = str(variant["market"]["state"]["numberOfBids"])
         except:
             numberBids = "N/A"
-
         try:
-            highestBid = variant["market"]["state"]["highestBid"]["amount"]
+            highestBid = str("$" + str(variant["market"]["state"]["highestBid"]["amount"]))
         except:
             highestBid = "N/A"
 
-        output_arr[0] += f"**{size}**\n"
-        output_arr[1] += f"${lowestAsk}\n" 
-        output_arr[2] += f"{numberAsk}\n"
-        output_arr[3] += f"${lastSold}\n"
-        output_arr[4] += f"{salesLast72Hours}\n"
-        output_arr[5] += f"${highestBid}\n"
-        output_arr[6] += f"{numberBids}\n"
+        output += "" + size.ljust(5) + "|" + lowestAsk.ljust(7) + "|" + highestBid.ljust(7) + "|" +lastSold.ljust(7) + "\n"
 
-    return output_arr
+
+ 
+        # output_arr[2] += f"{numberAsk}\n"
+        # output_arr[3] += f"${lastSold}\n"
+        # output_arr[4] += f"{salesLast72Hours}\n"
+        # output_arr[6] += f"{numberBids}\n"
+
+    return output
     
 class stockx(commands.Cog):
     def __init__(self, bot):
@@ -112,26 +107,29 @@ class stockx(commands.Cog):
             for trait in productData["traits"]:
                 if trait["name"] == "Retail Price":
                     productRetail = "$" + str(trait["value"])
+            
+            header = "```Size |Ask    |Bid    |Sold \n---------------------------\n"
             productInfo = fetchMarketData(productData)
 
             embedMsg = discord.Embed(title = productTitle,
                                     url = productURL, 
                                     color = 0xB702FD)
             embedMsg.set_thumbnail(url=productImage)
-            # embedMsg.set_image(url=productImage)
 
             embedMsg.add_field(name= "Retail: ", value= productRetail, inline=False)
-            embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Lowest Ask: ", value= productInfo[1], inline=True)
-            embedMsg.add_field(name= "# of Ask: ", value= productInfo[2], inline=True)
+            embedMsg.add_field(name= "Info", value= header + productInfo + "```", inline=True)
 
-            embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Last Sold: ", value= productInfo[3], inline=True)
-            embedMsg.add_field(name= "# Sales 72hr: ", value= productInfo[4], inline=True)
+            # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
+            # embedMsg.add_field(name= "Lowest Ask: ", value= productInfo[1], inline=True)
+            # embedMsg.add_field(name= "# of Ask: ", value= productInfo[2], inline=True)
 
-            embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            embedMsg.add_field(name= "Highest Bid: ", value= productInfo[5], inline=True)
-            embedMsg.add_field(name= "# of Bid: ", value= productInfo[6], inline=True)
+            # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
+            # embedMsg.add_field(name= "Last Sold: ", value= productInfo[3], inline=True)
+            # embedMsg.add_field(name= "# Sales 72hr: ", value= productInfo[4], inline=True)
+
+            # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
+            # embedMsg.add_field(name= "Highest Bid: ", value= productInfo[5], inline=True)
+            # embedMsg.add_field(name= "# of Bid: ", value= productInfo[6], inline=True)
 
             embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
 
