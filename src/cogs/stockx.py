@@ -98,7 +98,6 @@ class stockx(commands.Cog):
 
             content = soup.find("script", {"id":"__NEXT_DATA__"})
             result = json.loads(content.text)
-            print(result)
             productData = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][2]["state"]["data"]["product"]
             productSKU = productData["styleId"]
             productTitle = productData["title"]
