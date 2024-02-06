@@ -28,7 +28,6 @@ def fetchProductPage(arg):
 
 def fetchMarketData(data):
     output = ""
-    # output_arr = ["", "", "", "", "", "", ""]
     variants = data["variants"]
     # Size, [number of asks]lowestAsk, [past72hrSales]lastSold, [number of bids]highestBid,
     for variant in variants:
@@ -99,8 +98,9 @@ class stockx(commands.Cog):
 
             content = soup.find("script", {"id":"__NEXT_DATA__"})
             result = json.loads(content.text)
-            
+            print(result)
             productData = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][2]["state"]["data"]["product"]
+            productSKU = productData["styleId"]
             productTitle = productData["title"]
             productImage = productData["media"]["imageUrl"] 
             productRetail = ""
@@ -117,6 +117,7 @@ class stockx(commands.Cog):
             embedMsg.set_thumbnail(url=productImage)
 
             embedMsg.add_field(name= "Retail: ", value= productRetail, inline=False)
+            embedMsg.add_field(name= "SKU: ", value= productSKU, inline=False)
             embedMsg.add_field(name= "Info", value= header + productInfo + "```", inline=True)
 
             # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
