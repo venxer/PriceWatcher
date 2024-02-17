@@ -98,7 +98,7 @@ class stockx(commands.Cog):
 
             content = soup.find("script", {"id":"__NEXT_DATA__"})
             result = json.loads(content.text)
-            productData = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][2]["state"]["data"]["product"]
+            productData = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][3]["state"]["data"]["product"]
             productSKU = productData["styleId"]
             productTitle = productData["title"]
             productImage = productData["media"]["imageUrl"] 
@@ -134,7 +134,8 @@ class stockx(commands.Cog):
             embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
 
             await ctx.send(embed = embedMsg)
-        except:
+        except Exception as e:
+            await ctx.send(e)
             embedMsg = discord.Embed(title = arg,
                                      url = "https://www.stock.com/", 
                                      color = 0xB702FD)
