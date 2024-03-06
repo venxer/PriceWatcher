@@ -32,7 +32,7 @@ def fetchProductDetails(arg):
             }
     )
     url = f"https://stockx.com/api/browse?_search={arg}"
-    response = scraper.get(url)
+    response = scraper.get(url, proxies=fetchProxy())
     data = response.json()
 
     try:
