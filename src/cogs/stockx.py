@@ -1,30 +1,45 @@
 import discord
 from discord.ext import commands
 import json
+import random
 
 #for webscraping
 import cloudscraper
 from bs4 import BeautifulSoup
 
-def fetchProductPage(arg):
-    scraper = cloudscraper.create_scraper(
-    browser={
-        'browser': 'firefox',
-        'platform': 'windows',
-        'mobile': False
-        }
-    )
-    response = scraper.get(f"https://stockx.com/search?s={arg}")
+def fetchProxy():
+    with open('../assets/proxies.txt', 'r') as file:
+        proxies = file.readlines()
+        proxies = [proxy.strip() for proxy in proxies]
 
-    if(response.status_code == 429):
-        return 429
+    selectedProxy = random.choice(proxies)
+
+    proxyParts = selectedProxy.split(':')
+    proxyURL = f"http://{proxyParts[2]}:{proxyParts[3]}@{proxyParts[0]}:{proxyParts[1]}"
+
+    randomProxy = {
+        'http': proxyURL,
+        'https': proxyURL,
+    }
+    return randomProxy
     
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    container = soup.find("div", {"class" : "css-111hzm2-GridProductTileContainer"})
-    productLink = "https://stockx.com/" + container.find("a", {"data-testid" : "productTile-ProductSwitcherLink"}).get('href')
-    
-    return productLink
+def fetchProductDetails(arg):
+    scraper = cloudscraper.create_scraper(
+        browser={
+            'browser': 'chrome',
+            'platform': 'windows',
+            'mobile': False
+            }
+    )
+    url = f"https://stockx.com/api/browse?_search={arg}"
+    response = scraper.get(url)
+    data = response.json()
+
+    try:
+        bestMatchData = data["Products"][0]
+        return bestMatchData
+    except:
+        return None
 
 def fetchMarketData(data):
     output = ""
@@ -86,11 +101,15 @@ class stockx(commands.Cog):
                 }
             )
 
-            productURL = fetchProductPage(arg)
-            if(productURL == 429):
-                await ctx.send("Too many Request")
-                return
-            response = scraper.get(productURL)
+            productDetails = fetchProductDetails(arg)
+            productURL = "https://stockx.com/" + productDetails["urlKey"]
+            productSKU = productDetails["traits"][0]["value"]
+            productTitle = productDetails["title"]
+            productImage = productDetails["media"]["imageUrl"]
+            productRetail = productDetails["retailPrice"]
+
+            response = scraper.get(productURL, proxies=fetchProxy())
+            print(response.text)
             if(response.status_code == 429):
                 await ctx.send("Too many Request")
                 return
@@ -99,17 +118,9 @@ class stockx(commands.Cog):
             content = soup.find("script", {"id":"__NEXT_DATA__"})
             result = json.loads(content.text)
             productData = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][3]["state"]["data"]["product"]
-            productSKU = productData["styleId"]
-            productTitle = productData["title"]
-            productImage = productData["media"]["imageUrl"] 
-            productRetail = ""
-            for trait in productData["traits"]:
-                if trait["name"] == "Retail Price":
-                    productRetail = "$" + str(trait["value"])
+            productInfo = fetchMarketData(productData)
             
             header = "```Size |Ask    |Bid    |Sold \n---------------------------\n"
-            productInfo = fetchMarketData(productData)
-
             embedMsg = discord.Embed(title = productTitle,
                                     url = productURL, 
                                     color = 0xB702FD)
