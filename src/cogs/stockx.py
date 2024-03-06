@@ -109,7 +109,6 @@ class stockx(commands.Cog):
             productRetail = productDetails["retailPrice"]
 
             response = scraper.get(productURL, proxies=fetchProxy())
-            print(response.text)
             if(response.status_code == 429):
                 await ctx.send("Too many Request")
                 return
