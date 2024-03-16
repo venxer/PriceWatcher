@@ -23,7 +23,7 @@ def fetchProxy():
     }
     return randomProxy
     
-def fetchProductDetails(arg):
+def fetchProductDetails(arg, proxy):
     scraper = cloudscraper.create_scraper(
         browser={
             'browser': 'chrome',
@@ -32,7 +32,7 @@ def fetchProductDetails(arg):
             }
     )
     url = f"https://stockx.com/api/browse?_search={arg}"
-    response = scraper.get(url, proxies=fetchProxy())
+    response = scraper.get(url, proxies=proxy)
     data = response.json()
 
     try:
@@ -100,15 +100,16 @@ class stockx(commands.Cog):
                 'mobile': False
                 }
             )
+            proxy = fetchProxy()
 
-            productDetails = fetchProductDetails(arg)
+            productDetails = fetchProductDetails(arg, proxy)
             productURL = "https://stockx.com/" + productDetails["urlKey"]
             productSKU = productDetails["traits"][0]["value"]
             productTitle = productDetails["title"]
             productImage = productDetails["media"]["imageUrl"]
             productRetail = productDetails["retailPrice"]
 
-            response = scraper.get(productURL, proxies=fetchProxy())
+            response = scraper.get(productURL, proxies=proxy)
             if(response.status_code == 429):
                 await ctx.send("Too many Request")
                 return
