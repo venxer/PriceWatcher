@@ -2,13 +2,36 @@ import discord
 from discord.ext import commands
 import json
 import random
+from info import *
 
 #for webscraping
-import cloudscraper
+from botasaurus import AntiDetectRequests
 from bs4 import BeautifulSoup
 
-def fetchProxy():
-    with open('../assets/proxies.txt', 'r') as file:
+class stockx_info_menu(discord.ui.View):
+    def __init__(self, pages):
+        super().__init__(timeout=120)
+        self.pages = pages
+        self.current = 0
+
+    @discord.ui.button(label=u"\u25C0", style=discord.ButtonStyle.primary)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.current == 0:
+            self.current = len(self.pages) - 1
+        else:
+            self.current -= 1
+        await interaction.response.edit_message(embed=self.pages[self.current])
+
+    @discord.ui.button(label=u"\u25B6", style=discord.ButtonStyle.primary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.current == len(self.pages) - 1:
+            self.current = 0
+        else:
+            self.current += 1
+        await interaction.response.edit_message(embed=self.pages[self.current])
+
+def fetch_proxy():
+    with open('proxies.txt', 'r') as file:
         proxies = file.readlines()
         proxies = [proxy.strip() for proxy in proxies]
 
@@ -23,68 +46,70 @@ def fetchProxy():
     }
     return randomProxy
     
-def fetchProductDetails(arg, proxy):
-    scraper = cloudscraper.create_scraper(
-        browser={
-            'browser': 'chrome',
-            'platform': 'windows',
-            'mobile': False
-            }
-    )
+def fetch_product_details(request, arg):
     url = f"https://stockx.com/api/browse?_search={arg}"
-    response = scraper.get(url, proxies=proxy)
-    data = response.json()
+    response = request.get(url)
 
-    try:
-        bestMatchData = data["Products"][0]
-        return bestMatchData
-    except:
-        return None
+    log_info(f"\t Fetch Product Detail Status: {response.status_code}")
 
-def fetchMarketData(data):
-    output = ""
-    variants = data["variants"]
-    # Size, [number of asks]lowestAsk, [past72hrSales]lastSold, [number of bids]highestBid,
+    if(response.status_code == 200):
+        data = response.json()
+        try:
+            best_match_data = data["Products"][0]
+            return best_match_data
+        except:
+            return None
+    return response.status_code
+
+def fetch_market_data(request, product_URL):
+    response = request.get(product_URL)
+    log_info(f"\t Fetch Market Data Status: {response.status_code}")
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    content = soup.find("script", {"id":"__NEXT_DATA__"})
+    result = json.loads(content.text)
+    variants = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][3]["state"]["data"]["product"]["variants"]
+    market_output = ""
+    demand_output = ""
+
     for variant in variants:
         try:
             size = str(variant["traits"]["size"])
         except:
             size = "N/A"
-        try:
-            numberAsk = str(variant["market"]["state"]["numberOfAsks"])
-        except:
-            numberAsk = "N/A"
+        
+        # Market Data
         try:
             lowestAsk = "$" + str(variant["market"]["state"]["lowestAsk"]["amount"])
         except:
             lowestAsk = "N/A"
         try:
-            salesLast72Hours = str(variant["market"]["salesInformation"]["salesLast72Hours"])
+            highestBid = str("$" + str(variant["market"]["state"]["highestBid"]["amount"]))
         except:
-            salesLast72Hours = "N/A"
+            highestBid = "N/A"
         try:
             lastSold = "$" + str(variant["market"]["salesInformation"]["lastSale"])
         except:
             lastSold = "N/A"
+        
+        # Demand Data
+        try:
+            numberAsk = str(variant["market"]["state"]["numberOfAsks"])
+        except:
+            numberAsk = "0"
         try:
             numberBids = str(variant["market"]["state"]["numberOfBids"])
         except:
-            numberBids = "N/A"
+            numberBids = "0"
         try:
-            highestBid = str("$" + str(variant["market"]["state"]["highestBid"]["amount"]))
+            salesLast72Hours = str(variant["market"]["salesInformation"]["salesLast72Hours"])
         except:
-            highestBid = "N/A"
+            salesLast72Hours = "0"
+        
+        market_output += "" + size.ljust(5) + "|" + lowestAsk.ljust(7) + "|" + highestBid.ljust(7) + "|" + lastSold.ljust(7) + "\n"
+        demand_output += "" + size.ljust(5) + "|" + numberAsk.ljust(7) + "|" + numberBids.ljust(7) + "|" + salesLast72Hours.ljust(7) + "\n"
 
-        output += "" + size.ljust(5) + "|" + lowestAsk.ljust(7) + "|" + highestBid.ljust(7) + "|" +lastSold.ljust(7) + "\n"
-
-
- 
-        # output_arr[2] += f"{numberAsk}\n"
-        # output_arr[3] += f"${lastSold}\n"
-        # output_arr[4] += f"{salesLast72Hours}\n"
-        # output_arr[6] += f"{numberBids}\n"
-
-    return output
+    return market_output, demand_output
     
 class stockx(commands.Cog):
     def __init__(self, bot):
@@ -92,67 +117,78 @@ class stockx(commands.Cog):
 
     @commands.command()
     async def stockx(self, ctx, *, arg):
-        try:
-            scraper = cloudscraper.create_scraper(
-            browser={
-                'browser': 'firefox',
-                'platform': 'windows',
-                'mobile': False
-                }
-            )
-            proxy = fetchProxy()
+        log_info(f"StockX: {arg}")
 
-            productDetails = fetchProductDetails(arg, proxy)
-            productURL = "https://stockx.com/" + productDetails["urlKey"]
-            productSKU = productDetails["traits"][0]["value"]
-            productTitle = productDetails["title"]
-            productImage = productDetails["media"]["imageUrl"]
-            productRetail = productDetails["retailPrice"]
+        request = AntiDetectRequests(use_stealth=True)
+        request.proxies.update(fetch_proxy())
 
-            response = scraper.get(productURL, proxies=proxy)
-            if(response.status_code == 429):
-                await ctx.send("Too many Request")
-                return
-            soup = BeautifulSoup(response.text, 'html.parser')
+        product_details = fetch_product_details(request, arg)
 
-            content = soup.find("script", {"id":"__NEXT_DATA__"})
-            result = json.loads(content.text)
-            productData = result["props"]["pageProps"]["req"]["appContext"]["states"]["query"]["value"]["queries"][3]["state"]["data"]["product"]
-            productInfo = fetchMarketData(productData)
-            
-            header = "```Size |Ask    |Bid    |Sold \n---------------------------\n"
-            embedMsg = discord.Embed(title = productTitle,
-                                    url = productURL, 
-                                    color = 0xB702FD)
-            embedMsg.set_thumbnail(url=productImage)
+        if(product_details == None):
+            log_info(f"\t Product Not Found: {arg}")
+            product_not_found_embed = discord.Embed(title = arg,
+                         url = "https://www.stock.com/", 
+                         color = 0xB702FD)
+            product_not_found_embed.add_field(name= "Product Not Found", value="" ,inline=False)
+            product_not_found_embed.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
+            await ctx.send(embed = product_not_found_embed)
+            return
+        if(product_details == 403):
+            log_info(f"\t Blocked by Cloudfare: {arg}")
+            await ctx.send("Blocked by Cloudfare, try again later.")
+            return
+        
+        product_URL = "https://stockx.com/" + product_details["urlKey"]
+        product_SKU = product_details["traits"][0]["value"]
+        product_title = product_details["title"]
+        product_image = product_details["media"]["imageUrl"]
+        product_retail = product_details["retailPrice"]
+        log_info(f"\t Product URL: {product_URL}")
+        log_info(f"\t Product SKU: {product_SKU}")
+        log_info(f"\t Product Title: {product_title}")
+        log_info(f"\t Product Retail: {product_retail}")
 
-            embedMsg.add_field(name= "Retail: ", value= productRetail, inline=False)
-            embedMsg.add_field(name= "SKU: ", value= productSKU, inline=False)
-            embedMsg.add_field(name= "Info", value= header + productInfo + "```", inline=True)
+        product_market_data, product_demand_data = fetch_market_data(request, product_URL)
 
-            # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            # embedMsg.add_field(name= "Lowest Ask: ", value= productInfo[1], inline=True)
-            # embedMsg.add_field(name= "# of Ask: ", value= productInfo[2], inline=True)
+        pages = []
+        page_number = 1
 
-            # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            # embedMsg.add_field(name= "Last Sold: ", value= productInfo[3], inline=True)
-            # embedMsg.add_field(name= "# Sales 72hr: ", value= productInfo[4], inline=True)
+        # Market Data Page
+        market_data_header = "Size |Ask    |Bid    |Sold \n---------------------------\n"
+        market_data_embed = discord.Embed(title = product_title,
+                                          url   = product_URL, 
+                                          color = 0xB702FD)
+        market_data_embed.set_thumbnail(url=product_image)
 
-            # embedMsg.add_field(name= "Size: ", value= productInfo[0], inline=True)
-            # embedMsg.add_field(name= "Highest Bid: ", value= productInfo[5], inline=True)
-            # embedMsg.add_field(name= "# of Bid: ", value= productInfo[6], inline=True)
+        market_data_embed.add_field(name= "Retail: ", value= product_retail, inline=False)
+        market_data_embed.add_field(name= "SKU: ", value= product_SKU, inline=False)
+        market_data_embed.add_field(name= "Info", value= "```" + market_data_header + product_market_data + "```", inline=False)
 
-            embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
+        market_data_embed.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
 
-            await ctx.send(embed = embedMsg)
-        except Exception as e:
-            await ctx.send(e)
-            embedMsg = discord.Embed(title = arg,
-                                     url = "https://www.stock.com/", 
-                                     color = 0xB702FD)
-            embedMsg.add_field(name= "Product Not Found", value="" ,inline=False)
-            embedMsg.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
-            await ctx.send(embed = embedMsg)
+        pages.append(market_data_embed)
+        page_number += 1
+
+        # Demand Data Page
+        demand_data_header =  "     |# of   |# of   |72hr   \n"
+        demand_data_header += "Size |Ask    |Bid    |Sales  \n---------------------------\n"
+        demand_data_embed = discord.Embed(title = product_title,
+                                          url   = product_URL, 
+                                          color = 0xB702FD)
+        demand_data_embed.set_thumbnail(url=product_image)
+
+        demand_data_embed.add_field(name= "Retail: ", value= product_retail, inline=False)
+        demand_data_embed.add_field(name= "SKU: ", value= product_SKU, inline=False)
+        demand_data_embed.add_field(name= "Info", value= "```" + demand_data_header + product_demand_data + "```", inline=False)
+
+        demand_data_embed.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
+
+        pages.append(demand_data_embed)
+        page_number += 1
+
+        view = stockx_info_menu(pages)
+
+        await ctx.send(embed=pages[0], view=view)
 
     #error checking
     @stockx.error
