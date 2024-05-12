@@ -1,19 +1,25 @@
 import os
 import sys
+
+from datetime import datetime
 from dotenv import load_dotenv
+
+def get_time() -> str:
+    # Return date in the format of "MM-DD-YYYY HH:MM:SS:MS"
+    return datetime.now().strftime("%m-%d-%Y %H:%M:%S:%f")
 
 # Standardizes console output, use whenever possible
 def log_info(output:str) -> None:
-    print(f"[INFO] {output}")
+    print(f"[{get_time()}] [INFO] {output}")
 
 def log_warn(output:str) -> None:
-    print(f"[WARNING] {output}")
+    print(f"[{get_time()}] [WARNING] {output}")
 
 def log_err(output:str) -> None:
-    print(f"[ERROR] {output}")
+    print(f"[{get_time()}] [ERROR] {output}")
 
 def log_fatal(output:str) -> None:
-    print(f"[FATAL] {output}")
+    print(f"[{get_time()}] [FATAL] {output}")
     sys.exit(1)
 
 # Given a relative path, returns its absolute path equivalent, or the absolute path to
@@ -28,9 +34,9 @@ def getResourcePath(rel_path:str) -> str:
     return os.path.join(base_path, rel_path).replace("\\", "/")
 
 
-load_dotenv("../assets/.env")
+load_dotenv(".env")
 
 TOKEN = os.getenv("token")
 PREFIX = os.getenv("prefix")
 
-COG_PATH = "./cogs"
+COG_PATH = "../src/cogs"

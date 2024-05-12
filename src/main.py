@@ -1,13 +1,11 @@
 import asyncio
 import discord
-from discord.ext import commands
-from bot import Price_Watcher
+
 from info import *
+from bot import Price_Watcher
+from discord.ext import commands
 
 async def main():
-    print(f"PREFIX: {PREFIX}")
-    print(f"TOKEN: {TOKEN}")
-
     bot = Price_Watcher(
         prefix = PREFIX,
         intents = discord.Intents.all(),

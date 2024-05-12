@@ -1,7 +1,7 @@
-import discord
-from discord.ext import commands
 import os
 import sys
+import discord
+from discord.ext import commands
 from info import *
 
 class Price_Watcher(commands.Bot):
@@ -40,7 +40,7 @@ class Price_Watcher(commands.Bot):
                         cog = os.path.splitext(new_path)[0] \
                             .replace("/", ".")[new_path.find(dir_basename):]
                         try:    
-                            print(cog)
+                            log_info(f"Loading {cog}...")
                             await self.load_extension(cog)
                         except commands.ExtensionNotFound:
                             log_warn(f"{cog} could not be found! Ignoring...")
@@ -61,14 +61,18 @@ class Price_Watcher(commands.Bot):
             log_warn("No extensions were loaded!")
         else:
             log_info(f"Loaded {len(self.loaded_cogs)} extension(s), {num_synced} commands synced:")
+            count_cog = 0
             for cog in self.loaded_cogs:
-                print(f"\t{cog}")
+                count_cog += 1
+                log_info(f"Cog {count_cog}: {cog}")
         if len(self.guilds) == 0:
             log_warn("Bot is not currently in any guilds!")
         else:
             log_info(f"Deployed in {len(self.guilds)} guild(s):")
+            count_guild = 0
             for guild in self.guilds:
-                print(f"\t{guild.name}")
+                count_guild += 1
+                log_info(f"Guild {count_guild}: {guild.name}")
     
     async def startup(self):
         await self.start(self.token)
