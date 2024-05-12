@@ -101,13 +101,13 @@ def fetch_market_data(request, product_URL):
             numberBids = str(variant["market"]["state"]["numberOfBids"])
         except:
             numberBids = "0"
-        try:
-            salesLast72Hours = str(variant["market"]["salesInformation"]["salesLast72Hours"])
-        except:
-            salesLast72Hours = "0"
+        # try:
+        #     salesLast72Hours = str(variant["market"]["salesInformation"]["salesLast72Hours"])
+        # except:
+        #     salesLast72Hours = "0"
         
         market_output += "" + size.ljust(5) + "|" + lowestAsk.ljust(7) + "|" + highestBid.ljust(7) + "|" + lastSold.ljust(7) + "\n"
-        demand_output += "" + size.ljust(5) + "|" + numberAsk.ljust(7) + "|" + numberBids.ljust(7) + "|" + salesLast72Hours.ljust(7) + "\n"
+        demand_output += "" + size.ljust(5) + "|" + numberAsk.ljust(10) + "|" + numberBids.ljust(10) + "\n"
 
     return market_output, demand_output
     
@@ -127,8 +127,8 @@ class stockx(commands.Cog):
         if(product_details == None):
             log_info(f"\t Product Not Found: {arg}")
             product_not_found_embed = discord.Embed(title = arg,
-                         url = "https://www.stock.com/", 
-                         color = 0xB702FD)
+                                                    url = "https://www.stock.com/", 
+                                                    color = 0xB702FD)
             product_not_found_embed.add_field(name= "Product Not Found", value="" ,inline=False)
             product_not_found_embed.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
             await ctx.send(embed = product_not_found_embed)
@@ -170,8 +170,7 @@ class stockx(commands.Cog):
         page_number += 1
 
         # Demand Data Page
-        demand_data_header =  "     |# of   |# of   |72hr   \n"
-        demand_data_header += "Size |Ask    |Bid    |Sales  \n---------------------------\n"
+        demand_data_header = "Size |# of Ask  |# of Bid  \n---------------------------\n"
         demand_data_embed = discord.Embed(title = product_title,
                                           url   = product_URL, 
                                           color = 0xB702FD)
