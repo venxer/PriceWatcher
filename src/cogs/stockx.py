@@ -142,7 +142,7 @@ class stockx(commands.Cog):
         product_SKU = product_details["traits"][0]["value"]
         product_title = product_details["title"]
         product_image = product_details["media"]["imageUrl"]
-        product_retail = "$" + product_details["retailPrice"]
+        product_retail = "$" + str(product_details["retailPrice"])
         log_info(f"\tProduct URL: {product_URL}")
         log_info(f"\tProduct SKU: {product_SKU}")
         log_info(f"\tProduct Title: {product_title}")
