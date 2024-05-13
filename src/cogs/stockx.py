@@ -50,7 +50,7 @@ def fetch_product_details(request, arg):
     url = f"https://stockx.com/api/browse?_search={arg}"
     response = request.get(url)
 
-    log_info(f"\t Fetch Product Detail Status: {response.status_code}")
+    log_info(f"\tFetch Product Detail Status: {response.status_code}")
 
     if(response.status_code == 200):
         data = response.json()
@@ -63,7 +63,7 @@ def fetch_product_details(request, arg):
 
 def fetch_market_data(request, product_URL):
     response = request.get(product_URL)
-    log_info(f"\t Fetch Market Data Status: {response.status_code}")
+    log_info(f"\tFetch Market Data Status: {response.status_code}")
 
     soup = BeautifulSoup(response.text, "html.parser")
     content = soup.find("script", {"id":"__NEXT_DATA__"})
@@ -125,7 +125,7 @@ class stockx(commands.Cog):
         product_details = fetch_product_details(request, arg)
 
         if(product_details == None):
-            log_info(f"\t Product Not Found: {arg}")
+            log_info(f"\tProduct Not Found: {arg}")
             product_not_found_embed = discord.Embed(title = arg,
                                                     url = "https://www.stock.com/", 
                                                     color = 0xB702FD)
@@ -134,7 +134,7 @@ class stockx(commands.Cog):
             await ctx.send(embed = product_not_found_embed)
             return
         if(product_details == 403):
-            log_info(f"\t Blocked by Cloudfare: {arg}")
+            log_info(f"\tBlocked by Cloudfare: {arg}")
             await ctx.send("Blocked by Cloudfare, try again later.")
             return
         
@@ -142,11 +142,11 @@ class stockx(commands.Cog):
         product_SKU = product_details["traits"][0]["value"]
         product_title = product_details["title"]
         product_image = product_details["media"]["imageUrl"]
-        product_retail = product_details["retailPrice"]
-        log_info(f"\t Product URL: {product_URL}")
-        log_info(f"\t Product SKU: {product_SKU}")
-        log_info(f"\t Product Title: {product_title}")
-        log_info(f"\t Product Retail: {product_retail}")
+        product_retail = "$" + product_details["retailPrice"]
+        log_info(f"\tProduct URL: {product_URL}")
+        log_info(f"\tProduct SKU: {product_SKU}")
+        log_info(f"\tProduct Title: {product_title}")
+        log_info(f"\tProduct Retail: {product_retail}")
 
         product_market_data, product_demand_data = fetch_market_data(request, product_URL)
 
