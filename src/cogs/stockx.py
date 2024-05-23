@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import json
+import re
 import random
 from info import *
 
@@ -188,6 +189,13 @@ class stockx(commands.Cog):
         view = stockx_info_menu(pages)
 
         await ctx.send(embed=pages[0], view=view)
+
+    async def stockxb(self, ctx, *, arg):
+        SKUs = re.split(r';|,|\n| |, | ,', arg)
+        log_info(f"Stockx BULK: {len(SKUs)} SKUs")
+
+        for SKU in SKUs:
+            await self.stockx(ctx, arg=SKU)
 
     #error checking
     @stockx.error
