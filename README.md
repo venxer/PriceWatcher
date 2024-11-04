@@ -8,10 +8,11 @@ The PriceWatcher Bot is a specialized tool for fetching real-time market data ac
 - **Flexible Configurations**: Uses an `.env` file to set environment-specific variables.
 
 ## Setup
-Setup .env file in assets with
-token=YOURTOKEN
+Setup .env file in `assets` with  
+```
+token=YOURTOKEN  
 prefix=YOURPREFIX
-
+```
 
 ## Run Bot
 Run bash file on windows
