@@ -82,7 +82,7 @@ class goat(commands.Cog):
             product_not_found_embed = discord.Embed(title = arg,
                                                     url = "https://www.goat.com/", 
                                                     color = 0xB702FD)
-            product_not_found_embed.add_field(name= "Product Not Found", value="" ,inline=False)
+            product_not_found_embed.add_field(name= f"Product Not Found: {arg}", value="" ,inline=False)
             product_not_found_embed.set_footer(text= "Edwin Z.", icon_url= "https://www.edwinz.dev/img/profile_picture.jpg")
             await ctx.send(embed = product_not_found_embed)
             return 
